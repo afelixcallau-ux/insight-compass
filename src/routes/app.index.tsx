@@ -93,9 +93,9 @@ function Dashboard() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: "Mis productos", value: mine.length, icon: Package },
+          { label: "Productos Pampas", value: mine.length, icon: Package },
           { label: "Competidores", value: competitors.length, icon: Users },
-          { label: "Precio medio (mío)", value: avgMine ? `${avgMine.toFixed(2)}€` : "—", icon: TrendingUp },
+          { label: "Precio medio Pampas", value: avgMine ? `${avgMine.toFixed(2)}€` : "—", icon: TrendingUp },
           { label: "Precio medio rivales", value: avgRivals ? `${avgRivals.toFixed(2)}€` : "—", icon: TrendingDown },
         ].map((k) => (
           <div key={k.label} className="glass rounded-2xl p-4">
