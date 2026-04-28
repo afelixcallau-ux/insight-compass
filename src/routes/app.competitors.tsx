@@ -125,7 +125,7 @@ function CompetitorsPage() {
                 <h3 className="font-medium mb-3 flex items-center gap-2"><Package className="size-4" /> Productos</h3>
                 <div className="space-y-1 max-h-96 overflow-auto">
                   {selProducts.slice(0, 200).map((p) => (
-                    <div key={p.id} className="flex justify-between text-sm py-2 border-b border-white/30">
+                    <div key={p.id} className="flex justify-between text-sm py-2 border-b border-border">
                       <span className="truncate pr-4">{p.name}</span>
                       <span className="font-medium whitespace-nowrap">{p.price != null ? `${p.price}€` : "—"}</span>
                     </div>
