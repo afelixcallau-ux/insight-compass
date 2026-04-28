@@ -64,22 +64,24 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("Missing LOVABLE_API_KEY");
 
-    const sample = rows.slice(0, 60);
+    const cleanRows = Array.isArray(rows) ? rows.filter((row) => row && typeof row === "object") as Record<string, unknown>[] : [];
+    if (cleanRows.length === 0) throw new Error("No se encontraron filas válidas");
+    const sample = cleanRows.slice(0, 120);
 
-    const system = `Eres un asistente que normaliza filas de Excel de productos de tiendas/competidores.
+    const system = `Eres un asistente que normaliza columnas de Excel de productos de tiendas/competidores.
 Recibirás filas crudas (objetos con claves arbitrarias en cualquier idioma). Devuelve SIEMPRE JSON mediante la herramienta 'normalize'.
-Detecta la columna que representa nombre, precio, categoría, stock, sku, descripción, url. Si no existe, usa null.
+Tu tarea principal es detectar el mapeo exacto de columnas originales hacia: name, price, category, stock, sku, description, url, currency.
 Si todas las filas parecen del mismo competidor y puedes inferir el nombre del archivo o datos, sugiere 'competitor_name'. Si no, null.
-Los precios deben ser números (sin símbolo).`;
+No inventes productos. No resumas. Los precios deben ser números sin símbolo y sin separadores de miles.`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: system },
-          { role: "user", content: `Archivo: ${filename}\nFilas (muestra ${sample.length} de ${rows.length}):\n${JSON.stringify(sample)}` },
+          { role: "user", content: `Archivo: ${filename}\nFilas (muestra ${sample.length} de ${cleanRows.length}):\n${JSON.stringify(sample)}` },
         ],
         tools: [{
           type: "function",
