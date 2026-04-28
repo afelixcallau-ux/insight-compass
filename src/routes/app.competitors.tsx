@@ -54,7 +54,7 @@ function CompetitorsPage() {
       const r = selProducts.filter((p) => p.category === cat && p.price).map((p) => p.price!);
       return {
         name: cat,
-        "PAMPAS MARKET": m.length ? Math.round((m.reduce((a, b) => a + b, 0) / m.length) * 100) / 100 : 0,
+        "Mi tienda": m.length ? Math.round((m.reduce((a, b) => a + b, 0) / m.length) * 100) / 100 : 0,
         [selComp?.name || "Rival"]: r.length ? Math.round((r.reduce((a, b) => a + b, 0) / r.length) * 100) / 100 : 0,
       };
     });
@@ -64,7 +64,7 @@ function CompetitorsPage() {
     <div className="space-y-5">
       <div>
         <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Competidores</h1>
-        <p className="text-muted-foreground mt-1">{competitors.length} competidores detectados y validados</p>
+        <p className="text-muted-foreground mt-1">{competitors.length} competidores detectados por la IA</p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-4">
@@ -78,7 +78,7 @@ function CompetitorsPage() {
             const s = stats.get(c.id);
             const active = c.id === selected;
             return (
-              <div key={c.id} role="button" tabIndex={0} onClick={() => setSelected(c.id)} onKeyDown={(e) => e.key === "Enter" && setSelected(c.id)} className={`w-full text-left p-3 rounded-xl transition-all cursor-pointer ${active ? "bg-primary text-primary-foreground" : "hover:bg-accent"}`}>
+              <button key={c.id} onClick={() => setSelected(c.id)} className={`w-full text-left p-3 rounded-xl transition-all ${active ? "bg-primary text-primary-foreground" : "hover:bg-white/60"}`}>
                 <div className="flex items-center justify-between">
                   <div className="font-medium truncate">{c.name}</div>
                   <button onClick={(e) => { e.stopPropagation(); del.mutate(c.id); }} className={`p-1 rounded ${active ? "hover:bg-primary-foreground/10" : "hover:bg-destructive/10 text-muted-foreground hover:text-destructive"}`}>
@@ -88,7 +88,7 @@ function CompetitorsPage() {
                 <div className={`text-xs mt-1 ${active ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
                   {s?.count || 0} productos · {s?.avg ? `${s.avg.toFixed(2)}€ medio` : "—"}
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -110,12 +110,12 @@ function CompetitorsPage() {
                   <h3 className="font-medium mb-3">Comparativa por categoría</h3>
                   <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={compareData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.9 0.01 240)" />
                       <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                       <YAxis tick={{ fontSize: 11 }} />
-                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid var(--border)" }} />
-                      <Bar dataKey="PAMPAS MARKET" fill="var(--primary)" radius={[6, 6, 0, 0]} />
-                      <Bar dataKey={selComp.name} fill="var(--chart-2)" radius={[6, 6, 0, 0]} />
+                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid oklch(0.9 0.01 240)" }} />
+                      <Bar dataKey="Mi tienda" fill="oklch(0.62 0.17 252)" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey={selComp.name} fill="oklch(0.72 0.14 220)" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -125,7 +125,7 @@ function CompetitorsPage() {
                 <h3 className="font-medium mb-3 flex items-center gap-2"><Package className="size-4" /> Productos</h3>
                 <div className="space-y-1 max-h-96 overflow-auto">
                   {selProducts.slice(0, 200).map((p) => (
-                    <div key={p.id} className="flex justify-between text-sm py-2 border-b border-border">
+                    <div key={p.id} className="flex justify-between text-sm py-2 border-b border-white/30">
                       <span className="truncate pr-4">{p.name}</span>
                       <span className="font-medium whitespace-nowrap">{p.price != null ? `${p.price}€` : "—"}</span>
                     </div>

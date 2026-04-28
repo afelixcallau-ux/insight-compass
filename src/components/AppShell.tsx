@@ -1,8 +1,7 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Package, Users, MessageSquare, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, Users, MessageSquare, LogOut, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { BrandMark } from "@/components/BrandMark";
 import type { ReactNode } from "react";
 
 const nav = [
@@ -31,10 +30,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Sidebar */}
         <aside className="hidden md:flex flex-col w-64 p-4 gap-2">
           <Link to="/app" className="flex items-center gap-2 px-3 py-4">
-            <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-chart-3 flex items-center justify-center text-primary-foreground">
-              <BrandMark className="size-7" />
+            <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-chart-3 flex items-center justify-center">
+              <Sparkles className="size-5 text-primary-foreground" />
             </div>
-            <span className="font-semibold tracking-tight text-lg">PAMPAS MARKET</span>
+            <span className="font-semibold tracking-tight text-lg">Prisma</span>
           </Link>
           <nav className="glass rounded-2xl p-2 flex flex-col gap-1">
             {nav.map((n) => {
@@ -43,7 +42,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               return (
                 <Link key={n.to} to={n.to} className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all",
-                  active ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-accent text-foreground/80"
+                  active ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-white/50 text-foreground/80"
                 )}>
                   <Icon className="size-4" />
                   {n.label}

@@ -1,14 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { BarChart3, Upload, MessageSquare } from "lucide-react";
-import { BrandMark } from "@/components/BrandMark";
+import { Sparkles, BarChart3, Upload, MessageSquare } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PAMPAS MARKET — Análisis de competencia" },
-      { name: "description", content: "Sube Excel de competencia y obtén productos, precios, gráficos y recomendaciones claras." },
+      { title: "Prisma — Análisis de competencia con IA" },
+      { name: "description", content: "Sube Excel, la IA extrae productos y te muestra análisis claros de competencia." },
     ],
   }),
   component: Landing,
@@ -27,32 +26,32 @@ function Landing() {
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 py-16 md:py-28">
         <div className="flex items-center gap-2 mb-12">
-          <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-chart-3 flex items-center justify-center text-primary-foreground">
-            <BrandMark className="size-7" />
+          <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-chart-3 flex items-center justify-center">
+            <Sparkles className="size-5 text-primary-foreground" />
           </div>
-          <span className="font-semibold text-lg tracking-tight">PAMPAS MARKET</span>
+          <span className="font-semibold text-lg tracking-tight">Prisma</span>
         </div>
 
         <h1 className="text-5xl md:text-7xl font-semibold tracking-tight leading-[1.05]">
-          PAMPAS MARKET,<br />
-          <span className="bg-gradient-to-r from-primary to-chart-3 bg-clip-text text-transparent">precios claros frente a rivales.</span>
+          Tu competencia,<br />
+          <span className="bg-gradient-to-r from-primary to-chart-3 bg-clip-text text-transparent">clara como el cristal.</span>
         </h1>
         <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl">
-          Sube tus Excel y la app valida columnas, limpia precios y compara grandes catálogos con gráficos e insights accionables.
+          Sube un Excel y la IA extrae, clasifica y compara productos. Insights, gráficos y recomendaciones en segundos.
         </p>
 
         <div className="mt-10 flex flex-wrap gap-3">
           <Link to="/auth" className="rounded-full bg-primary text-primary-foreground px-6 py-3 text-sm font-medium shadow-lg shadow-primary/20 hover:opacity-90 transition">
             Empezar gratis
           </Link>
-          <Link to="/auth" className="glass rounded-full px-6 py-3 text-sm font-medium hover:bg-accent transition">
+          <Link to="/auth" className="glass rounded-full px-6 py-3 text-sm font-medium hover:bg-white/70 transition">
             Iniciar sesión
           </Link>
         </div>
 
         <div className="mt-20 grid md:grid-cols-3 gap-4">
           {[
-            { icon: Upload, title: "Sube cualquier Excel", desc: "Detecta columnas y valida importes aunque cambie el formato." },
+            { icon: Upload, title: "Sube cualquier Excel", desc: "La IA detecta columnas aunque varíen entre archivos." },
             { icon: BarChart3, title: "Gráficos automáticos", desc: "Precios, categorías y posición frente a competidores." },
             { icon: MessageSquare, title: "Pregúntale a la IA", desc: "Chatea con tus datos y obtén recomendaciones." },
           ].map((f) => (

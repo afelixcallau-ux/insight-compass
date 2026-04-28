@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import * as XLSX from "xlsx";
 import { Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -7,20 +7,17 @@ import { Button } from "@/components/ui/button";
 
 export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () => void }) {
   const [loading, setLoading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
     setLoading(true);
     try {
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf, { type: "array" });
-      const rows = wb.SheetNames.flatMap((sheetName) => {
-        const sheet = wb.Sheets[sheetName];
-        return XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null }).map((row) => ({ ...row, __sheet: sheetName }));
-      });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null });
       if (rows.length === 0) throw new Error("El Excel está vacío");
 
-      toast.info(`Analizando y validando ${rows.length} filas...`);
+      toast.info("La IA está analizando el archivo...");
       const { data, error } = await supabase.functions.invoke("extract-products", {
         body: { rows, filename: file.name },
       });
@@ -42,23 +39,19 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
         }
       }
 
-      const textOrNull = (value: unknown) => value == null || value === "" ? null : String(value).trim();
-      const numberOrNull = (value: unknown) => typeof value === "number" ? value : value == null || value === "" ? null : Number(String(value).replace(/[^0-9,.-]/g, "").replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", ".")) || null;
-      const intOrNull = (value: unknown) => { const n = numberOrNull(value); return n == null ? null : Math.round(n); };
-
       const products = (data.products as Array<Record<string, unknown>>).map((p) => ({
         user_id: userId,
         competitor_id: competitorId,
         is_mine: isMine,
-        name: String(p.name || "").trim(),
-        sku: textOrNull(p.sku),
-        category: textOrNull(p.category),
-        price: numberOrNull(p.price),
-        currency: textOrNull(p.currency) || "EUR",
-        stock: intOrNull(p.stock),
-        description: textOrNull(p.description),
-        url: textOrNull(p.url),
-      })).filter((p) => p.name);
+        name: p.name,
+        sku: p.sku,
+        category: p.category,
+        price: p.price,
+        currency: p.currency || "EUR",
+        stock: p.stock,
+        description: p.description,
+        url: p.url,
+      }));
 
       if (products.length === 0) throw new Error("La IA no pudo extraer productos");
 
@@ -87,16 +80,16 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
   };
 
   return (
-    <div className="glass rounded-2xl p-6 flex flex-col items-center justify-center gap-3 border-dashed border-2 border-primary/20 hover:border-primary/40 transition-colors">
+    <label className="glass rounded-2xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer border-dashed border-2 border-primary/20 hover:border-primary/40 transition-colors">
       {loading ? <Loader2 className="size-6 animate-spin text-primary" /> : <Upload className="size-6 text-primary" />}
       <div className="text-center">
-        <p className="text-sm font-medium">{isMine ? "Sube productos PAMPAS MARKET" : "Sube Excel de competidor"}</p>
-        <p className="text-xs text-muted-foreground mt-1">Detección automática con validación de precios y columnas</p>
+        <p className="text-sm font-medium">{isMine ? "Sube tus productos" : "Sube Excel de competidor"}</p>
+        <p className="text-xs text-muted-foreground mt-1">La IA detectará las columnas automáticamente</p>
       </div>
-      <Button type="button" variant="secondary" size="sm" disabled={loading} onClick={() => inputRef.current?.click()}>
+      <Button type="button" variant="secondary" size="sm" disabled={loading} onClick={(e) => { e.preventDefault(); (e.currentTarget.parentElement?.querySelector("input") as HTMLInputElement)?.click(); }}>
         Seleccionar archivo
       </Button>
-      <input ref={inputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={loading} />
-    </div>
+      <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={loading} />
+    </label>
   );
 }

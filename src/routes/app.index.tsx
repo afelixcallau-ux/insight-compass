@@ -64,14 +64,14 @@ function Dashboard() {
       const c = competitors.find((x) => x.id === id);
       out.push({ name: c?.name || "—", avg: Math.round((vs.reduce((a, b) => a + b, 0) / vs.length) * 100) / 100 });
     });
-    if (mine.length) out.unshift({ name: "PAMPAS", avg: Math.round(avgMine * 100) / 100 });
+    if (mine.length) out.unshift({ name: "Mi tienda", avg: Math.round(avgMine * 100) / 100 });
     return out.slice(0, 8);
   }, [rivals, competitors, mine, avgMine]);
 
   const analyze = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke("analyze-data", {
-        body: { mine: mine.slice(0, 300), competitors: rivals.slice(0, 700) },
+        body: { mine: mine.slice(0, 100), competitors: rivals.slice(0, 200) },
       });
       if (error) throw error;
       if (data.error) throw new Error(data.error);
@@ -81,7 +81,7 @@ function Dashboard() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Error"),
   });
 
-  const COLORS = ["var(--primary)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--accent)"];
+  const COLORS = ["oklch(0.62 0.17 252)", "oklch(0.72 0.14 220)", "oklch(0.55 0.18 265)", "oklch(0.78 0.1 235)", "oklch(0.68 0.15 240)", "oklch(0.5 0.15 255)"];
 
   return (
     <div className="space-y-6">
@@ -93,9 +93,9 @@ function Dashboard() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: "Productos Pampas", value: mine.length, icon: Package },
+          { label: "Mis productos", value: mine.length, icon: Package },
           { label: "Competidores", value: competitors.length, icon: Users },
-          { label: "Precio medio Pampas", value: avgMine ? `${avgMine.toFixed(2)}€` : "—", icon: TrendingUp },
+          { label: "Precio medio (mío)", value: avgMine ? `${avgMine.toFixed(2)}€` : "—", icon: TrendingUp },
           { label: "Precio medio rivales", value: avgRivals ? `${avgRivals.toFixed(2)}€` : "—", icon: TrendingDown },
         ].map((k) => (
           <div key={k.label} className="glass rounded-2xl p-4">
@@ -118,7 +118,7 @@ function Dashboard() {
         <div className="glass-strong rounded-3xl p-12 text-center">
           <Sparkles className="size-10 text-primary mx-auto mb-3" />
           <h3 className="text-lg font-medium">Empieza subiendo un Excel</h3>
-          <p className="text-sm text-muted-foreground mt-1">El sistema detectará columnas, validará precios y preparará comparativas.</p>
+          <p className="text-sm text-muted-foreground mt-1">La IA hará el resto.</p>
         </div>
       ) : (
         <>
@@ -128,11 +128,11 @@ function Dashboard() {
               <h3 className="font-medium mb-4">Precio medio por tienda</h3>
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={priceByCompetitor}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.9 0.01 240)" />
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid var(--border)", backdropFilter: "blur(10px)" }} />
-                  <Bar dataKey="avg" fill="var(--primary)" radius={[8, 8, 0, 0]} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid oklch(0.9 0.01 240)", backdropFilter: "blur(10px)" }} />
+                  <Bar dataKey="avg" fill="oklch(0.62 0.17 252)" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -143,7 +143,7 @@ function Dashboard() {
                   <Pie data={catData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={85} innerRadius={50}>
                     {catData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid var(--border)" }} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid oklch(0.9 0.01 240)" }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
