@@ -1,9 +1,61 @@
-// Extracts structured product data from raw Excel rows using Lovable AI
+// Extracts structured product data from raw Excel rows using Lovable AI + deterministic validation
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+const fields = new Set(["name", "sku", "category", "price", "currency", "stock", "description", "url"]);
+const aliases: Record<string, string[]> = {
+  name: ["nombre", "producto", "product", "descripcion articulo", "articulo", "item", "titulo", "title", "denominacion"],
+  sku: ["sku", "referencia", "ref", "codigo", "code", "id producto", "ean", "barcode", "gtin"],
+  category: ["categoria", "category", "familia", "linea", "grupo", "seccion", "rubro"],
+  price: ["precio", "price", "pvp", "importe", "venta", "coste", "amount", "tarifa", "precio final", "precio oferta"],
+  currency: ["moneda", "currency", "divisa"],
+  stock: ["stock", "existencias", "inventario", "unidades", "qty", "quantity", "cantidad"],
+  description: ["descripcion", "description", "detalle", "observaciones", "notes"],
+  url: ["url", "link", "enlace", "web", "pagina"],
+};
+
+const norm = (value: unknown) => String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[_\-./]+/g, " ").replace(/\s+/g, " ").trim();
+
+function parseNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  let s = String(value ?? "").trim();
+  if (!s) return null;
+  s = s.replace(/[^0-9,.-]/g, "");
+  const lastComma = s.lastIndexOf(",");
+  const lastDot = s.lastIndexOf(".");
+  if (lastComma > -1 && lastDot > -1) s = lastComma > lastDot ? s.replace(/\./g, "").replace(",", ".") : s.replace(/,/g, "");
+  else if (lastComma > -1) s = s.replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", ".");
+  else s = s.replace(/,(?=\d{3}(\D|$))/g, "");
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
+
+function detectMapping(rows: Record<string, unknown>[], aiMapping: Record<string, string>) {
+  const columns = [...new Set(rows.flatMap((row) => Object.keys(row).filter((key) => !key.startsWith("__"))))];
+  const mapping: Record<string, string> = {};
+  for (const [left, right] of Object.entries(aiMapping || {})) {
+    const l = String(left), r = String(right);
+    if (columns.includes(l) && fields.has(r)) mapping[l] = r;
+    else if (fields.has(l) && columns.includes(r)) mapping[r] = l;
+  }
+  const used = new Set(Object.values(mapping));
+  for (const column of columns) {
+    if (mapping[column]) continue;
+    const key = norm(column);
+    let best: string | null = null;
+    let score = 0;
+    for (const [field, words] of Object.entries(aliases)) {
+      if (used.has(field)) continue;
+      const hit = words.reduce((max, word) => key === norm(word) ? Math.max(max, 4) : key.includes(norm(word)) ? Math.max(max, 2) : max, 0);
+      if (hit > score) { best = field; score = hit; }
+    }
+    if (best) { mapping[column] = best; used.add(best); }
+  }
+  return mapping;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
