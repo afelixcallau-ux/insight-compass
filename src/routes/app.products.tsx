@@ -57,10 +57,10 @@ function ProductsPage() {
       <div className="glass rounded-2xl p-3 flex gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Buscar..." value={q} onChange={(e) => setQ(e.target.value)} className="pl-9 rounded-xl border-0 bg-white/50" />
+          <Input placeholder="Buscar..." value={q} onChange={(e) => setQ(e.target.value)} className="pl-9 rounded-xl border-0 bg-glass" />
         </div>
         <Select value={owner} onValueChange={(v) => setOwner(v as typeof owner)}>
-          <SelectTrigger className="w-[180px] rounded-xl border-0 bg-white/50"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[180px] rounded-xl border-0 bg-glass"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="mine">PAMPAS MARKET</SelectItem>
@@ -70,7 +70,7 @@ function ProductsPage() {
       </div>
 
       <div className="glass rounded-2xl overflow-hidden">
-        <div className="grid grid-cols-12 gap-3 px-4 py-3 text-xs text-muted-foreground border-b border-white/40">
+        <div className="grid grid-cols-12 gap-3 px-4 py-3 text-xs text-muted-foreground border-b border-border">
           <div className="col-span-5">Producto</div>
           <div className="col-span-2">Categoría</div>
           <div className="col-span-2">Dueño</div>
@@ -80,7 +80,7 @@ function ProductsPage() {
         {filtered.length === 0 ? (
           <div className="p-10 text-center text-sm text-muted-foreground">Sin productos</div>
         ) : filtered.slice(0, 500).map((p) => (
-          <div key={p.id} className="grid grid-cols-12 gap-3 px-4 py-3 border-b border-white/30 text-sm items-center hover:bg-white/40 transition-colors">
+          <div key={p.id} className="grid grid-cols-12 gap-3 px-4 py-3 border-b border-border text-sm items-center hover:bg-accent transition-colors">
             <div className="col-span-5">
               <div className="font-medium truncate">{p.name}</div>
               {p.sku && <div className="text-xs text-muted-foreground">{p.sku}</div>}
