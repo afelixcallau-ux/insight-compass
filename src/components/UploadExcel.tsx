@@ -58,7 +58,6 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
         stock: intOrNull(p.stock),
         description: textOrNull(p.description),
         url: textOrNull(p.url),
-        raw: (p.raw && typeof p.raw === "object" ? p.raw : null) as Record<string, unknown> | null,
       })).filter((p) => p.name);
 
       if (products.length === 0) throw new Error("La IA no pudo extraer productos");
