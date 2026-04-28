@@ -135,32 +135,43 @@ No inventes productos. No resumas. Los precios deben ser números sin símbolo y
     const call = data.choices?.[0]?.message?.tool_calls?.[0];
     const args = call ? JSON.parse(call.function.arguments) : { products: [], column_mapping: {} };
 
-    // Apply mapping to all rows (not just sample) using the mapping returned
-    const mapping: Record<string, string> = args.column_mapping || {};
-    const normalizedAll = rows.map((row: Record<string, unknown>) => {
+    // Apply AI mapping + deterministic aliases to all rows, not only the sample.
+    const mapping = detectMapping(cleanRows, args.column_mapping || {});
+    const normalizedAll = cleanRows.map((row: Record<string, unknown>) => {
       const out: Record<string, unknown> = {};
       for (const [orig, std] of Object.entries(mapping)) {
         if (row[orig] !== undefined) out[std] = row[orig];
       }
+      out.raw = row;
       return out;
     }).filter((p) => p.name);
 
-    // Coerce types
+    // Coerce, validate and de-duplicate. This catches common AI mistakes and locale-specific prices.
+    const seen = new Set<string>();
     const products = normalizedAll.map((p: Record<string, unknown>) => ({
       name: String(p.name ?? "").trim(),
-      sku: p.sku ? String(p.sku) : null,
-      category: p.category ? String(p.category) : null,
-      price: p.price !== undefined && p.price !== null && p.price !== "" ? Number(String(p.price).replace(/[^0-9.,-]/g, "").replace(",", ".")) || null : null,
-      currency: p.currency ? String(p.currency) : "EUR",
-      stock: p.stock !== undefined && p.stock !== null && p.stock !== "" ? parseInt(String(p.stock)) || null : null,
+      sku: p.sku ? String(p.sku).trim() : null,
+      category: p.category ? String(p.category).trim() : null,
+      price: parseNumber(p.price),
+      currency: p.currency ? String(p.currency).trim().slice(0, 8) : "EUR",
+      stock: parseNumber(p.stock) == null ? null : Math.round(parseNumber(p.stock)!),
       description: p.description ? String(p.description) : null,
       url: p.url ? String(p.url) : null,
-    })).filter((p) => p.name);
+      raw: p.raw,
+    })).filter((p) => {
+      if (!p.name || p.name.length < 2) return false;
+      if (p.price != null && (p.price < 0 || p.price > 1000000)) p.price = null;
+      const key = `${p.sku || ""}|${norm(p.name)}|${p.price ?? ""}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
     return new Response(JSON.stringify({
       competitor_name: args.competitor_name,
       column_mapping: mapping,
-      products: products.length > 0 ? products : args.products,
+      products,
+      diagnostics: { rows_received: cleanRows.length, rows_imported: products.length, columns_detected: Object.keys(mapping).length },
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     console.error(e);
