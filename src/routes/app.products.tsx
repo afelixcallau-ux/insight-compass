@@ -63,7 +63,7 @@ function ProductsPage() {
           <SelectTrigger className="w-[180px] rounded-xl border-0 bg-white/50"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="mine">Mi tienda</SelectItem>
+            <SelectItem value="mine">PAMPAS MARKET</SelectItem>
             <SelectItem value="rivals">Competidores</SelectItem>
           </SelectContent>
         </Select>
@@ -88,7 +88,7 @@ function ProductsPage() {
             <div className="col-span-2 text-muted-foreground truncate">{p.category || "—"}</div>
             <div className="col-span-2">
               <span className={`text-xs px-2 py-0.5 rounded-full ${p.is_mine ? "bg-primary/15 text-primary" : "bg-accent text-accent-foreground"}`}>
-                {p.is_mine ? "Mi tienda" : compMap[p.competitor_id || ""] || "Competidor"}
+                {p.is_mine ? "PAMPAS MARKET" : compMap[p.competitor_id || ""] || "Competidor"}
               </span>
             </div>
             <div className="col-span-2 text-right font-medium">{p.price != null ? `${p.price}€` : "—"}</div>
