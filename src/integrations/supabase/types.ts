@@ -14,7 +14,163 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_insights: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          kind: string
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          kind: string
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          kind?: string
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      competitors: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category: string | null
+          competitor_id: string | null
+          created_at: string
+          currency: string | null
+          description: string | null
+          id: string
+          is_mine: boolean
+          name: string
+          price: number | null
+          raw: Json | null
+          sku: string | null
+          stock: number | null
+          updated_at: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          competitor_id?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          is_mine?: boolean
+          name: string
+          price?: number | null
+          raw?: Json | null
+          sku?: string | null
+          stock?: number | null
+          updated_at?: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          competitor_id?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          is_mine?: boolean
+          name?: string
+          price?: number | null
+          raw?: Json | null
+          sku?: string | null
+          stock?: number | null
+          updated_at?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_competitor_id_fkey"
+            columns: ["competitor_id"]
+            isOneToOne: false
+            referencedRelation: "competitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      uploads: {
+        Row: {
+          competitor_id: string | null
+          created_at: string
+          filename: string
+          id: string
+          is_mine: boolean
+          rows_imported: number | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          competitor_id?: string | null
+          created_at?: string
+          filename: string
+          id?: string
+          is_mine?: boolean
+          rows_imported?: number | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          competitor_id?: string | null
+          created_at?: string
+          filename?: string
+          id?: string
+          is_mine?: boolean
+          rows_imported?: number | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uploads_competitor_id_fkey"
+            columns: ["competitor_id"]
+            isOneToOne: false
+            referencedRelation: "competitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
