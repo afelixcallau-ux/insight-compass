@@ -45,7 +45,7 @@ function Landing() {
           <Link to="/auth" className="rounded-full bg-primary text-primary-foreground px-6 py-3 text-sm font-medium shadow-lg shadow-primary/20 hover:opacity-90 transition">
             Empezar gratis
           </Link>
-          <Link to="/auth" className="glass rounded-full px-6 py-3 text-sm font-medium hover:bg-white/70 transition">
+          <Link to="/auth" className="glass rounded-full px-6 py-3 text-sm font-medium hover:bg-accent transition">
             Iniciar sesión
           </Link>
         </div>
