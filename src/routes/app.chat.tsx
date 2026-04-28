@@ -120,7 +120,7 @@ function ChatPage() {
       </div>
 
       <div className="mt-3 flex gap-2">
-        <Input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Escribe tu pregunta..." className="rounded-full bg-white/60 border-white/60" disabled={loading} />
+        <Input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Escribe tu pregunta..." className="rounded-full bg-glass border-border" disabled={loading} />
         <Button onClick={send} disabled={loading || !input.trim()} size="icon" className="rounded-full size-10"><Send className="size-4" /></Button>
       </div>
     </div>

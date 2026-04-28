@@ -11,7 +11,8 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("Missing LOVABLE_API_KEY");
 
-    const system = `Eres un analista de competencia y pricing. Responde en español, claro y conciso, usando markdown cuando ayude.
+    const system = `Eres un analista de competencia y pricing de PAMPAS MARKET. Responde en español, claro y conciso, usando markdown cuando ayude.
+No inventes datos: si el contexto no contiene la respuesta, dilo y pide subir más Excel o filtrar mejor.
 Tienes acceso a este contexto de datos del usuario:
 ${JSON.stringify(context).slice(0, 12000)}`;
 
@@ -19,7 +20,7 @@ ${JSON.stringify(context).slice(0, 12000)}`;
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [{ role: "system", content: system }, ...messages],
         stream: true,
       }),

@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Sparkles } from "lucide-react";
+import { BrandMark } from "@/components/BrandMark";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Entrar — Prisma" }] }),
+  head: () => ({ meta: [{ title: "Entrar — PAMPAS MARKET" }] }),
   component: AuthPage,
 });
 
@@ -52,10 +52,10 @@ function AuthPage() {
 
       <div className="relative z-10 w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-chart-3 flex items-center justify-center">
-            <Sparkles className="size-5 text-primary-foreground" />
+          <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-chart-3 flex items-center justify-center text-primary-foreground">
+            <BrandMark className="size-7" />
           </div>
-          <span className="font-semibold text-lg">Prisma</span>
+          <span className="font-semibold text-lg">PAMPAS MARKET</span>
         </Link>
 
         <div className="glass-strong rounded-3xl p-8">

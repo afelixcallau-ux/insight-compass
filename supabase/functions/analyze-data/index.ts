@@ -11,15 +11,16 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("Missing LOVABLE_API_KEY");
 
-    const system = `Eres un analista experto de pricing y competencia retail. Devuelve JSON con la herramienta 'analysis'.
-Genera: resumen ejecutivo (2-3 frases), 3-6 insights clave, 3-5 recomendaciones accionables, y para los productos con match por nombre/SKU similar: la comparación con la media y mediana de competidores.
+    const system = `Eres un analista experto de pricing retail para PAMPAS MARKET. Devuelve JSON con la herramienta 'analysis'.
+Trabaja solo con los datos recibidos: no inventes productos, precios ni competidores. Si faltan datos, dilo claramente.
+Genera: resumen ejecutivo (2-3 frases), 3-6 insights clave, 3-5 recomendaciones accionables, y compara productos/categorías por media, mediana y posición frente a rivales cuando haya datos suficientes.
 Sé directo, concreto y en español.`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: system },
           { role: "user", content: `MIS PRODUCTOS (${mine.length}):\n${JSON.stringify(mine.slice(0, 100))}\n\nCOMPETIDORES (${competitors.length} productos):\n${JSON.stringify(competitors.slice(0, 200))}` },
