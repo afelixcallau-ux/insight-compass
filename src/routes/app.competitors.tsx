@@ -54,7 +54,7 @@ function CompetitorsPage() {
       const r = selProducts.filter((p) => p.category === cat && p.price).map((p) => p.price!);
       return {
         name: cat,
-        "Mi tienda": m.length ? Math.round((m.reduce((a, b) => a + b, 0) / m.length) * 100) / 100 : 0,
+        "PAMPAS MARKET": m.length ? Math.round((m.reduce((a, b) => a + b, 0) / m.length) * 100) / 100 : 0,
         [selComp?.name || "Rival"]: r.length ? Math.round((r.reduce((a, b) => a + b, 0) / r.length) * 100) / 100 : 0,
       };
     });
@@ -114,7 +114,7 @@ function CompetitorsPage() {
                       <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                       <YAxis tick={{ fontSize: 11 }} />
                       <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid var(--border)" }} />
-                      <Bar dataKey="Mi tienda" fill="var(--primary)" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="PAMPAS MARKET" fill="var(--primary)" radius={[6, 6, 0, 0]} />
                       <Bar dataKey={selComp.name} fill="var(--chart-2)" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
