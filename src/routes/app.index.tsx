@@ -81,7 +81,7 @@ function Dashboard() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Error"),
   });
 
-  const COLORS = ["oklch(0.62 0.17 252)", "oklch(0.72 0.14 220)", "oklch(0.55 0.18 265)", "oklch(0.78 0.1 235)", "oklch(0.68 0.15 240)", "oklch(0.5 0.15 255)"];
+  const COLORS = ["oklch(0.4 0.164 29.2)", "oklch(0.55 0.16 30)", "oklch(0.65 0.12 35)", "oklch(0.75 0.08 40)", "oklch(0.5 0.1 20)", "oklch(0.6 0.14 25)"];
 
   return (
     <div className="space-y-6">
@@ -132,7 +132,7 @@ function Dashboard() {
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid oklch(0.9 0.01 240)", backdropFilter: "blur(10px)" }} />
-                  <Bar dataKey="avg" fill="oklch(0.62 0.17 252)" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="avg" fill="oklch(0.4 0.164 29.2)" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
