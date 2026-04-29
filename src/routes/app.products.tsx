@@ -21,7 +21,7 @@ function ProductsPage() {
 
   const { data: products = [] } = useQuery({
     queryKey: ["products", "all"],
-    queryFn: async () => (await supabase.from("products").select("*").order("created_at", { ascending: false }).limit(1000)).data as Product[] || [],
+    queryFn: async () => (await supabase.from("products").select("*").order("created_at", { ascending: false }).limit(10000)).data as Product[] || [],
   });
   const { data: competitors = [] } = useQuery({
     queryKey: ["competitors"],
@@ -57,10 +57,10 @@ function ProductsPage() {
       <div className="glass rounded-2xl p-3 flex gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Buscar..." value={q} onChange={(e) => setQ(e.target.value)} className="pl-9 rounded-xl border-0 bg-white/50" />
+          <Input placeholder="Buscar..." value={q} onChange={(e) => setQ(e.target.value)} className="pl-9 rounded-xl border-0 bg-card/60" />
         </div>
         <Select value={owner} onValueChange={(v) => setOwner(v as typeof owner)}>
-          <SelectTrigger className="w-[180px] rounded-xl border-0 bg-white/50"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[180px] rounded-xl border-0 bg-card/60"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="mine">Mi tienda</SelectItem>
@@ -80,7 +80,7 @@ function ProductsPage() {
         {filtered.length === 0 ? (
           <div className="p-10 text-center text-sm text-muted-foreground">Sin productos</div>
         ) : filtered.slice(0, 500).map((p) => (
-          <div key={p.id} className="grid grid-cols-12 gap-3 px-4 py-3 border-b border-white/30 text-sm items-center hover:bg-white/40 transition-colors">
+          <div key={p.id} className="grid grid-cols-12 gap-3 px-4 py-3 border-b border-glass-border text-sm items-center hover:bg-card/50 transition-colors">
             <div className="col-span-5">
               <div className="font-medium truncate">{p.name}</div>
               {p.sku && <div className="text-xs text-muted-foreground">{p.sku}</div>}
