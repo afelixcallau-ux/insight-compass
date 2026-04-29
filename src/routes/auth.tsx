@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Entrar — Prisma" }] }),
+  head: () => ({ meta: [{ title: "Entrar — Ha pampas market" }] }),
   component: AuthPage,
 });
 
@@ -47,15 +47,15 @@ function AuthPage() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4">
-      <div className="blob bg-primary/30 w-[400px] h-[400px] -top-20 -left-10" />
-      <div className="blob bg-chart-3/25 w-[420px] h-[420px] bottom-0 right-0" />
+      <div className="glass-aura bg-primary/20 w-[400px] h-[400px] -top-20 -left-10" />
+      <div className="glass-aura bg-secondary/18 w-[420px] h-[420px] bottom-0 right-0" />
 
       <div className="relative z-10 w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
           <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-chart-3 flex items-center justify-center">
             <Sparkles className="size-5 text-primary-foreground" />
           </div>
-          <span className="font-semibold text-lg">Prisma</span>
+          <span className="font-semibold text-lg">Ha pampas market</span>
         </Link>
 
         <div className="glass-strong rounded-3xl p-8">
