@@ -22,9 +22,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="relative min-h-screen">
-      <div className="blob bg-primary/30 w-[480px] h-[480px] -top-32 -left-32" />
-      <div className="blob bg-chart-3/25 w-[500px] h-[500px] top-1/2 -right-40" />
-      <div className="blob bg-chart-4/30 w-[420px] h-[420px] bottom-0 left-1/3" />
+      <div className="glass-aura bg-primary/20 w-[520px] h-[520px] -top-40 -left-40" />
+      <div className="glass-aura bg-secondary/18 w-[520px] h-[520px] top-1/2 -right-44" />
+      <div className="glass-aura bg-chart-4/18 w-[460px] h-[460px] bottom-0 left-1/3" />
 
       <div className="relative z-10 flex min-h-screen">
         {/* Sidebar */}
@@ -33,7 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-chart-3 flex items-center justify-center">
               <Sparkles className="size-5 text-primary-foreground" />
             </div>
-            <span className="font-semibold tracking-tight text-lg">Prisma</span>
+            <span className="font-semibold tracking-tight text-lg">Ha pampas market</span>
           </Link>
           <nav className="glass rounded-2xl p-2 flex flex-col gap-1">
             {nav.map((n) => {
@@ -42,7 +42,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               return (
                 <Link key={n.to} to={n.to} className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all",
-                  active ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-white/50 text-foreground/80"
+                  active ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-card/60 text-foreground/80"
                 )}>
                   <Icon className="size-4" />
                   {n.label}
