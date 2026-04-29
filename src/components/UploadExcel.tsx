@@ -94,7 +94,9 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
         const deleteQuery = supabase.from("products").delete();
         const { error: de } = isMine
           ? await deleteQuery.eq("is_mine", true)
-          : await deleteQuery.eq("competitor_id", competitorId);
+          : competitorId
+            ? await deleteQuery.eq("competitor_id", competitorId)
+            : { error: null };
         if (de) throw de;
       }
 
