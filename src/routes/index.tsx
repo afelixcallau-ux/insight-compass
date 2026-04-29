@@ -6,8 +6,8 @@ import { Sparkles, BarChart3, Upload, MessageSquare } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Prisma — Análisis de competencia con IA" },
-      { name: "description", content: "Sube Excel, la IA extrae productos y te muestra análisis claros de competencia." },
+      { title: "Ha pampas market — Pricing con IA" },
+      { name: "description", content: "Sube Excel o texto, extrae productos y analiza competencia con gráficos claros." },
     ],
   }),
   component: Landing,
@@ -20,21 +20,21 @@ function Landing() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <div className="blob bg-primary/30 w-[500px] h-[500px] top-0 -left-20" />
-      <div className="blob bg-chart-3/25 w-[520px] h-[520px] top-40 -right-20" />
-      <div className="blob bg-chart-4/20 w-[400px] h-[400px] bottom-0 left-1/2" />
+      <div className="glass-aura bg-primary/20 w-[500px] h-[500px] top-0 -left-20" />
+      <div className="glass-aura bg-secondary/18 w-[520px] h-[520px] top-40 -right-20" />
+      <div className="glass-aura bg-chart-4/16 w-[400px] h-[400px] bottom-0 left-1/2" />
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 py-16 md:py-28">
         <div className="flex items-center gap-2 mb-12">
           <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-chart-3 flex items-center justify-center">
             <Sparkles className="size-5 text-primary-foreground" />
           </div>
-          <span className="font-semibold text-lg tracking-tight">Prisma</span>
+          <span className="font-semibold text-lg tracking-tight">Ha pampas market</span>
         </div>
 
         <h1 className="text-5xl md:text-7xl font-semibold tracking-tight leading-[1.05]">
           Tu competencia,<br />
-          <span className="bg-gradient-to-r from-primary to-chart-3 bg-clip-text text-transparent">clara como el cristal.</span>
+            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">clara como el cristal.</span>
         </h1>
         <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl">
           Sube un Excel y la IA extrae, clasifica y compara productos. Insights, gráficos y recomendaciones en segundos.
@@ -44,7 +44,7 @@ function Landing() {
           <Link to="/auth" className="rounded-full bg-primary text-primary-foreground px-6 py-3 text-sm font-medium shadow-lg shadow-primary/20 hover:opacity-90 transition">
             Empezar gratis
           </Link>
-          <Link to="/auth" className="glass rounded-full px-6 py-3 text-sm font-medium hover:bg-white/70 transition">
+          <Link to="/auth" className="glass rounded-full px-6 py-3 text-sm font-medium hover:bg-card/70 transition">
             Iniciar sesión
           </Link>
         </div>

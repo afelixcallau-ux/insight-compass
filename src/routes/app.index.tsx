@@ -21,7 +21,7 @@ function Dashboard() {
   const { data: products = [] } = useQuery({
     queryKey: ["products"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("products").select("id,name,category,price,is_mine,competitor_id").limit(1000);
+      const { data, error } = await supabase.from("products").select("id,name,category,price,is_mine,competitor_id").limit(10000);
       if (error) throw error;
       return data as Product[];
     },
@@ -71,7 +71,7 @@ function Dashboard() {
   const analyze = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke("analyze-data", {
-        body: { mine: mine.slice(0, 100), competitors: rivals.slice(0, 200) },
+        body: { mine: mine.slice(0, 500), competitors: rivals.slice(0, 1200) },
       });
       if (error) throw error;
       if (data.error) throw new Error(data.error);

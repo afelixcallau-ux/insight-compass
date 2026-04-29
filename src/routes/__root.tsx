@@ -32,8 +32,8 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Prisma — Análisis de competencia con IA" },
-      { name: "description", content: "Sube Excel de competencia, la IA extrae y analiza tus datos con gráficos claros." },
+      { title: "Ha pampas market — Pricing con IA" },
+      { name: "description", content: "Sube Excel o texto, extrae productos y analiza competencia con gráficos claros." },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),

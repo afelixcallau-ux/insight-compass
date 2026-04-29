@@ -21,7 +21,7 @@ function CompetitorsPage() {
   });
   const { data: products = [] } = useQuery({
     queryKey: ["products", "all"],
-    queryFn: async () => (await supabase.from("products").select("id,name,price,category,competitor_id,is_mine").limit(1000)).data as Product[] || [],
+    queryFn: async () => (await supabase.from("products").select("id,name,price,category,competitor_id,is_mine").limit(10000)).data as Product[] || [],
   });
 
   const del = useMutation({
@@ -78,7 +78,7 @@ function CompetitorsPage() {
             const s = stats.get(c.id);
             const active = c.id === selected;
             return (
-              <button key={c.id} onClick={() => setSelected(c.id)} className={`w-full text-left p-3 rounded-xl transition-all ${active ? "bg-primary text-primary-foreground" : "hover:bg-white/60"}`}>
+              <button key={c.id} onClick={() => setSelected(c.id)} className={`w-full text-left p-3 rounded-xl transition-all ${active ? "bg-primary text-primary-foreground" : "hover:bg-card/60"}`}>
                 <div className="flex items-center justify-between">
                   <div className="font-medium truncate">{c.name}</div>
                   <button onClick={(e) => { e.stopPropagation(); del.mutate(c.id); }} className={`p-1 rounded ${active ? "hover:bg-primary-foreground/10" : "hover:bg-destructive/10 text-muted-foreground hover:text-destructive"}`}>
