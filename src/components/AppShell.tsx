@@ -24,9 +24,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="relative min-h-screen">
-      <div className="glass-aura bg-primary/20 w-[520px] h-[520px] -top-40 -left-40" />
-      <div className="glass-aura bg-secondary/18 w-[520px] h-[520px] top-1/2 -right-44" />
-      <div className="glass-aura bg-chart-4/18 w-[460px] h-[460px] bottom-0 left-1/3" />
+      <div className="glass-aura bg-primary/5 w-[520px] h-[520px] -top-40 -left-40" />
+      <div className="glass-aura bg-primary/5 w-[460px] h-[460px] bottom-0 right-0" />
 
       <div className="relative z-10 flex min-h-screen">
         {/* Sidebar */}

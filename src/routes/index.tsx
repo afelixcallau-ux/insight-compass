@@ -21,9 +21,8 @@ function Landing() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <div className="glass-aura bg-primary/30 w-[560px] h-[560px] -top-24 -left-24" />
-      <div className="glass-aura bg-secondary/25 w-[560px] h-[560px] top-40 -right-24" />
-      <div className="glass-aura bg-chart-4/20 w-[420px] h-[420px] bottom-0 left-1/2" />
+      <div className="glass-aura bg-primary/10 w-[560px] h-[560px] -top-24 -left-24" />
+      <div className="glass-aura bg-primary/8 w-[560px] h-[560px] top-40 -right-24" />
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 py-12 md:py-24">
         <div className="flex items-center justify-between mb-12">
