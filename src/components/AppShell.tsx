@@ -1,8 +1,9 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Package, Users, MessageSquare, LogOut, Sparkles, FileStack } from "lucide-react";
+import { LayoutDashboard, Package, Users, MessageSquare, LogOut, FileStack } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
+import logoMark from "@/assets/logo-mark.png";
 
 const nav = [
   { to: "/app", label: "Resumen", icon: LayoutDashboard },
@@ -31,10 +32,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Sidebar */}
         <aside className="hidden md:flex flex-col w-64 p-4 gap-2">
           <Link to="/app" className="flex items-center gap-2 px-3 py-4">
-            <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-chart-3 flex items-center justify-center">
-              <Sparkles className="size-5 text-primary-foreground" />
-            </div>
-            <span className="font-semibold tracking-tight text-lg">Ha pampas market</span>
+            <img src={logoMark} alt="" width={36} height={36} className="size-9 drop-shadow-sm" />
+            <span className="font-semibold tracking-tight text-base">PAMPAS MARKET</span>
           </Link>
           <nav className="glass rounded-2xl p-2 flex flex-col gap-1">
             {nav.map((n) => {
