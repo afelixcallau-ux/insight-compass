@@ -32,7 +32,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Ha pampas market — Pricing con IA" },
+      { title: "PAMPAS MARKET — Pricing con IA" },
       { name: "description", content: "Sube Excel o texto, extrae productos y analiza competencia con gráficos claros." },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
