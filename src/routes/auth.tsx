@@ -47,8 +47,8 @@ function AuthPage() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4">
-      <div className="glass-aura bg-primary/20 w-[400px] h-[400px] -top-20 -left-10" />
-      <div className="glass-aura bg-secondary/18 w-[420px] h-[420px] bottom-0 right-0" />
+      <div className="glass-aura bg-primary/8 w-[400px] h-[400px] -top-20 -left-10" />
+      <div className="glass-aura bg-primary/8 w-[420px] h-[420px] bottom-0 right-0" />
 
       <div className="relative z-10 w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
