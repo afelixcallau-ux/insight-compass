@@ -97,10 +97,15 @@ function ChatPage() {
       <div ref={scrollRef} className="flex-1 overflow-auto glass rounded-2xl p-4 space-y-4">
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center gap-3 py-10">
-            <div className="size-12 rounded-2xl bg-gradient-to-br from-primary to-chart-3 flex items-center justify-center">
-              <Sparkles className="size-6 text-primary-foreground" />
+            <div className="size-12 rounded-2xl glass-subtle flex items-center justify-center">
+              <Sparkles className="size-6 text-primary" />
             </div>
-            <p className="text-muted-foreground max-w-sm">Ej: "¿Quién tiene los precios más bajos en mi categoría top?"</p>
+            <p className="text-muted-foreground max-w-sm">Ej: "¿En qué categoría soy más caro que la competencia?" o "¿Qué productos debería bajar de precio?"</p>
+            <div className="flex flex-wrap justify-center gap-2 mt-2 max-w-md">
+              {["Resume mi catálogo", "¿Quién es el rival más barato?", "Top 5 productos a revisar"].map((s) => (
+                <button key={s} onClick={() => setInput(s)} className="glass-subtle rounded-full px-3 py-1.5 text-xs hover:bg-card/70">{s}</button>
+              ))}
+            </div>
           </div>
         )}
         {messages.map((m, i) => (
