@@ -190,18 +190,42 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
   };
 
   const handleFile = async (file: File) => {
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type: "array" });
-    const rows = wb.SheetNames.flatMap((sheetName) => {
-      const sheet = wb.Sheets[sheetName];
-      return XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null, raw: false }).map((row, index) => ({
-        ...row,
-        __sheet: sheetName,
-        __row: index + 2,
-      }));
-    }).filter((row) => Object.values(row).some((value) => value != null && String(value).trim() !== ""));
-    if (rows.length === 0) throw new Error("El archivo está vacío");
-    await importData({ rows, filename: file.name });
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      if (ext === "pdf") {
+        const pdfjs = await import("pdfjs-dist");
+        pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.mjs", import.meta.url).toString();
+        const pdf = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
+        const pages: string[] = [];
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum += 1) {
+          const page = await pdf.getPage(pageNum);
+          const content = await page.getTextContent();
+          const textPage = content.items.map((item) => "str" in item ? item.str : "").join(" ").replace(/\s+/g, " ").trim();
+          if (textPage) pages.push(`Página ${pageNum}: ${textPage}`);
+        }
+        if (!pages.length) throw new Error("No se pudo leer texto del PDF");
+        await importData({ text: pages.join("\n"), filename: file.name });
+        return;
+      }
+
+      if (ext === "txt") {
+        const fileText = await file.text();
+        if (!fileText.trim()) throw new Error("El archivo está vacío");
+        await importData({ text: fileText, filename: file.name });
+        return;
+      }
+
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array", dense: true, cellDates: true });
+      const rows = wb.SheetNames.flatMap((sheetName) => {
+        const matrix = XLSX.utils.sheet_to_json<SheetRow>(wb.Sheets[sheetName], { header: 1, defval: null, raw: false, blankrows: false });
+        return rowsFromSheetMatrix(matrix, sheetName);
+      });
+      if (rows.length === 0) throw new Error("El archivo está vacío");
+      await importData({ rows, filename: file.name });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo leer el archivo");
+    }
   };
 
   const handleText = async () => {
