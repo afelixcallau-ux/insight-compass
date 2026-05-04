@@ -200,8 +200,20 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum += 1) {
           const page = await pdf.getPage(pageNum);
           const content = await page.getTextContent();
-          const textPage = content.items.map((item) => "str" in item ? item.str : "").join(" ").replace(/\s+/g, " ").trim();
-          if (textPage) pages.push(`Página ${pageNum}: ${textPage}`);
+          const lines = new Map<number, Array<{ x: number; text: string }>>();
+          content.items.forEach((item) => {
+            if (!("str" in item) || !item.str.trim()) return;
+            const transform = (item as { transform?: number[] }).transform || [0, 0, 0, 0, 0, 0];
+            const y = Math.round((transform[5] || 0) / 4) * 4;
+            const x = transform[4] || 0;
+            lines.set(y, [...(lines.get(y) || []), { x, text: item.str.trim() }]);
+          });
+          const textPage = [...lines.entries()]
+            .sort((a, b) => b[0] - a[0])
+            .map(([, items]) => items.sort((a, b) => a.x - b.x).map((item) => item.text).join(" ").replace(/\s+/g, " ").trim())
+            .filter(Boolean)
+            .join("\n");
+          if (textPage) pages.push(`Página ${pageNum}\n${textPage}`);
         }
         if (!pages.length) throw new Error("No se pudo leer texto del PDF");
         await importData({ text: pages.join("\n"), filename: file.name });
