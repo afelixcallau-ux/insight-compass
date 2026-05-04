@@ -29,7 +29,7 @@ const cleanString = (v: unknown) => {
   return t && t !== "-" && t.toLowerCase() !== "null" ? t : null;
 };
 
-const badName = /^(pagina|página|page|total|subtotal|iva|vat|impuesto|precio|price|producto|product|referencia|codigo|código|stock|cantidad|unidades|fecha|cliente|proveedor)\b/i;
+const badName = /^(pagina|página|page|total|subtotal|iva|vat|impuesto|precio|price|producto|product|ref|referencia|sku|codigo|código|stock|cantidad|unidades|fecha|cliente|proveedor)\b/i;
 
 const numberValue = (v: unknown) => {
   if (typeof v === "number" && Number.isFinite(v)) return v;
@@ -61,6 +61,8 @@ function productFromTextLine(line: string, row: Row) {
   if (!name || name.length < 3) name = clean.replace(price.text, "").trim();
   const skuMatch = name.match(/^([A-Z0-9][A-Z0-9._\/-]{2,})\s+(.{3,})$/i);
   const sku = skuMatch ? skuMatch[1] : null;
+  const afterPrice = clean.slice(price.index + price.text.length);
+  const stockMatch = afterPrice.match(/\b(\d{1,6})\b/);
   if (skuMatch) name = skuMatch[2].trim();
   if (!name || badName.test(name) || name.split(" ").length > 24) return null;
   return {
@@ -69,7 +71,7 @@ function productFromTextLine(line: string, row: Row) {
     category: cleanString(row.__sheet),
     price: price.value,
     currency: /usd|us\$|\$/i.test(clean) ? "USD" : "EUR",
-    stock: null,
+    stock: stockMatch ? numberValue(stockMatch[1]) : null,
     description: clean,
     url: null,
     raw: row,
@@ -133,6 +135,7 @@ function normalizeRows(rows: Row[], mapping: Record<string, Field>) {
     if (typeof row.texto === "string") {
       const fromText = productFromTextLine(row.texto, row);
       if (fromText) return fromText;
+      if (Object.keys(row).filter((key) => !key.startsWith("__")).length <= 1) return null;
     }
 
     const out: Partial<Record<Field, unknown>> = {};
@@ -166,7 +169,7 @@ function normalizeRows(rows: Row[], mapping: Record<string, Field>) {
     }
 
     return product;
-  }).filter((p) => p.name && p.name.length > 1 && !badName.test(String(p.name)));
+  }).filter((p) => p?.name && p.name.length > 1 && !badName.test(String(p.name)));
 }
 
 function rowsFromText(text: string): Row[] {
