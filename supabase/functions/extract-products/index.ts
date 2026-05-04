@@ -187,15 +187,18 @@ function rowsFromText(text: string): Row[] {
 }
 
 async function aiNormalizeChunk(rows: Row[], filename: string, apiKey: string, attempt = 0): Promise<{ products: Row[]; competitor_name?: string | null }> {
-  const system = `Eres un parser de catálogos. Devuelve SOLO la herramienta normalize. Para cada fila extrae name (obligatorio), sku, category, price (número), currency, stock, description, url. Si un campo no está, usa null. NO inventes datos. Si hay un nombre de competidor o tienda, devuélvelo en competitor_name.`;
+  const system = `Eres un parser experto de catálogos retail para PAMPAS MARKET. Procesas Excel, CSV, PDF y texto copiado.
+Devuelve SOLO la herramienta normalize. Extrae únicamente productos reales, no cabeceras, totales, páginas, impuestos ni textos legales.
+Para cada producto devuelve name obligatorio, sku, category, price numérico, currency, stock numérico, description, url. Si falta algo usa null.
+Si hay tablas sin cabecera, interpreta columnas por contexto. Si una línea tiene nombre + precio, úsala como producto. NO inventes datos.`;
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
       messages: [
         { role: "system", content: system },
-        { role: "user", content: `Origen: ${filename}\nFilas a normalizar (JSON):\n${JSON.stringify(rows).slice(0, 80000)}` },
+        { role: "user", content: `Origen: ${filename}\nFilas/líneas a normalizar (JSON):\n${JSON.stringify(rows).slice(0, 100000)}` },
       ],
       tools: [{ type: "function", function: { name: "normalize", parameters: {
         type: "object",
@@ -247,9 +250,9 @@ Deno.serve(async (req) => {
     const needsAi = detected < 2 || yield_ < 0.5 || products.filter((p) => p.price != null).length / Math.max(products.length, 1) < 0.3;
 
     if (needsAi) {
-      // Chunk rows (60 per call) and merge results
-      const chunkSize = 60;
-      const maxChunks = 25; // up to 1500 rows via AI
+      // Chunk rows and merge results. Deterministic pass handles very large files; AI repairs messy/PDF chunks.
+      const chunkSize = 90;
+      const maxChunks = 60;
       const aiProducts: Row[] = [];
       for (let i = 0; i < Math.min(rows.length, chunkSize * maxChunks); i += chunkSize) {
         const chunk = rows.slice(i, i + chunkSize);
@@ -258,7 +261,7 @@ Deno.serve(async (req) => {
           if (!competitor_name && ai.competitor_name) competitor_name = ai.competitor_name;
           if (Array.isArray(ai.products)) {
             for (const p of ai.products) {
-              if (p.name) aiProducts.push({ ...p, raw: chunk[aiProducts.length % chunk.length] || null });
+              if (p.name && !badName.test(String(p.name))) aiProducts.push({ ...p, raw: p.raw ?? chunk[aiProducts.length % chunk.length] ?? null });
             }
           }
         } catch (e) {
