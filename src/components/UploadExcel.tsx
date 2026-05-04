@@ -114,7 +114,7 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
   const importData = async (payload: { rows?: Array<Record<string, unknown>>; text?: string; filename: string }) => {
     setLoading(true);
     try {
-      toast.info("Procesando datos con extracción híbrida...");
+      toast.info("Procesando archivo con extracción avanzada...");
       const { data, error } = await supabase.functions.invoke("extract-products", {
         body: payload,
       });
@@ -239,7 +239,7 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-medium">{isMine ? "Tus productos" : "Competidor"}</p>
-          <p className="text-xs text-muted-foreground mt-1">Excel multihoja o texto pegado, sin plantilla fija</p>
+          <p className="text-xs text-muted-foreground mt-1">PDF, Excel multihoja, CSV, TXT o texto pegado</p>
         </div>
         {loading ? <Loader2 className="size-5 animate-spin text-primary" /> : <Wand2 className="size-5 text-secondary" />}
       </div>
@@ -257,11 +257,11 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
         <label className="glass rounded-2xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer border-2 border-dashed border-glass-border hover:border-primary transition-colors">
           <Upload className="size-6 text-primary" />
           <div className="text-center">
-            <p className="text-sm font-medium">Selecciona Excel, CSV o XLS</p>
-            <p className="text-xs text-muted-foreground mt-1">Lee todas las hojas y normaliza miles de filas</p>
+            <p className="text-sm font-medium">Selecciona PDF, Excel, CSV, XLS o TXT</p>
+            <p className="text-xs text-muted-foreground mt-1">Detecta tablas, hojas grandes, columnas raras y textos largos</p>
           </div>
           <span className="inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground">Subir archivo</span>
-          <input type="file" accept=".xlsx,.xls,.csv" className="sr-only" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={loading} />
+          <input type="file" accept=".xlsx,.xls,.csv,.pdf,.txt" className="sr-only" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={loading} />
         </label>
       ) : (
         <div className="space-y-3">
