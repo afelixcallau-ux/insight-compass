@@ -22,6 +22,71 @@ type ExtractedProduct = {
 
 type ProductInsert = TablesInsert<"products">;
 
+type SheetRow = Array<unknown>;
+
+const headerWords = [
+  "name", "nombre", "producto", "product", "descripcion", "descripción", "articulo", "artículo", "item", "title", "titulo", "título",
+  "sku", "ref", "referencia", "codigo", "código", "ean", "gtin", "categoria", "categoría", "familia", "precio", "price", "pvp", "importe", "stock", "cantidad", "unidades",
+];
+
+const cleanCell = (value: unknown) => {
+  if (value == null) return "";
+  return String(value).replace(/\s+/g, " ").trim();
+};
+
+const uniqueHeader = (value: unknown, index: number, used: Set<string>) => {
+  const base = cleanCell(value) || `col_${index + 1}`;
+  let key = base;
+  let n = 2;
+  while (used.has(key)) key = `${base}_${n++}`;
+  used.add(key);
+  return key;
+};
+
+const rowDensity = (row: SheetRow) => row.filter((cell) => cleanCell(cell)).length;
+
+const looksLikeHeader = (row: SheetRow, nextRows: SheetRow[]) => {
+  const filled = rowDensity(row);
+  if (filled < 2) return false;
+  const cells = row.map(cleanCell).filter(Boolean);
+  const textRatio = cells.filter((cell) => toNumberOrNull(cell) == null).length / Math.max(cells.length, 1);
+  const keywordHits = cells.filter((cell) => headerWords.some((word) => cell.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(word.normalize("NFD").replace(/[\u0300-\u036f]/g, "")))).length;
+  const nextDensity = nextRows.slice(0, 5).filter((r) => rowDensity(r) >= Math.max(2, Math.min(filled, 3))).length;
+  return keywordHits >= 1 || (textRatio > 0.75 && nextDensity >= 2 && filled >= 3);
+};
+
+const rowsFromSheetMatrix = (matrix: SheetRow[], sheetName: string) => {
+  const output: Array<Record<string, unknown>> = [];
+  let headers: string[] | null = null;
+
+  matrix.forEach((row, index) => {
+    if (rowDensity(row) === 0) return;
+    if (looksLikeHeader(row, matrix.slice(index + 1, index + 7))) {
+      const used = new Set<string>();
+      headers = row.map((cell, idx) => uniqueHeader(cell, idx, used));
+      return;
+    }
+
+    if (!headers) {
+      if (rowDensity(row) >= 2) {
+        const record: Record<string, unknown> = { __sheet: sheetName, __row: index + 1 };
+        row.forEach((cell, idx) => record[`col_${idx + 1}`] = cleanCell(cell) || null);
+        output.push(record);
+      } else {
+        const textLine = row.map(cleanCell).filter(Boolean).join(" ");
+        if (textLine) output.push({ texto: textLine, __sheet: sheetName, __row: index + 1 });
+      }
+      return;
+    }
+
+    const record: Record<string, unknown> = { __sheet: sheetName, __row: index + 1 };
+    headers.forEach((header, idx) => record[header] = cleanCell(row[idx]) || null);
+    if (Object.entries(record).some(([key, value]) => !key.startsWith("__") && cleanCell(value))) output.push(record);
+  });
+
+  return output;
+};
+
 const toNullableString = (value: unknown) => {
   if (value == null) return null;
   const text = String(value).trim();
