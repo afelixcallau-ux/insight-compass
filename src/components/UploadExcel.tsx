@@ -22,6 +22,71 @@ type ExtractedProduct = {
 
 type ProductInsert = TablesInsert<"products">;
 
+type SheetRow = Array<unknown>;
+
+const headerWords = [
+  "name", "nombre", "producto", "product", "descripcion", "descripción", "articulo", "artículo", "item", "title", "titulo", "título",
+  "sku", "ref", "referencia", "codigo", "código", "ean", "gtin", "categoria", "categoría", "familia", "precio", "price", "pvp", "importe", "stock", "cantidad", "unidades",
+];
+
+const cleanCell = (value: unknown) => {
+  if (value == null) return "";
+  return String(value).replace(/\s+/g, " ").trim();
+};
+
+const uniqueHeader = (value: unknown, index: number, used: Set<string>) => {
+  const base = cleanCell(value) || `col_${index + 1}`;
+  let key = base;
+  let n = 2;
+  while (used.has(key)) key = `${base}_${n++}`;
+  used.add(key);
+  return key;
+};
+
+const rowDensity = (row: SheetRow) => row.filter((cell) => cleanCell(cell)).length;
+
+const looksLikeHeader = (row: SheetRow, nextRows: SheetRow[]) => {
+  const filled = rowDensity(row);
+  if (filled < 2) return false;
+  const cells = row.map(cleanCell).filter(Boolean);
+  const textRatio = cells.filter((cell) => toNumberOrNull(cell) == null).length / Math.max(cells.length, 1);
+  const keywordHits = cells.filter((cell) => headerWords.some((word) => cell.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(word.normalize("NFD").replace(/[\u0300-\u036f]/g, "")))).length;
+  const nextDensity = nextRows.slice(0, 5).filter((r) => rowDensity(r) >= Math.max(2, Math.min(filled, 3))).length;
+  return keywordHits >= 1 || (textRatio > 0.75 && nextDensity >= 2 && filled >= 3);
+};
+
+const rowsFromSheetMatrix = (matrix: SheetRow[], sheetName: string) => {
+  const output: Array<Record<string, unknown>> = [];
+  let headers: string[] | null = null;
+
+  matrix.forEach((row, index) => {
+    if (rowDensity(row) === 0) return;
+    if (looksLikeHeader(row, matrix.slice(index + 1, index + 7))) {
+      const used = new Set<string>();
+      headers = row.map((cell, idx) => uniqueHeader(cell, idx, used));
+      return;
+    }
+
+    if (!headers) {
+      if (rowDensity(row) >= 2) {
+        const record: Record<string, unknown> = { __sheet: sheetName, __row: index + 1 };
+        row.forEach((cell, idx) => record[`col_${idx + 1}`] = cleanCell(cell) || null);
+        output.push(record);
+      } else {
+        const textLine = row.map(cleanCell).filter(Boolean).join(" ");
+        if (textLine) output.push({ texto: textLine, __sheet: sheetName, __row: index + 1 });
+      }
+      return;
+    }
+
+    const record: Record<string, unknown> = { __sheet: sheetName, __row: index + 1 };
+    headers.forEach((header, idx) => record[header] = cleanCell(row[idx]) || null);
+    if (Object.entries(record).some(([key, value]) => !key.startsWith("__") && cleanCell(value))) output.push(record);
+  });
+
+  return output;
+};
+
 const toNullableString = (value: unknown) => {
   if (value == null) return null;
   const text = String(value).trim();
@@ -49,7 +114,7 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
   const importData = async (payload: { rows?: Array<Record<string, unknown>>; text?: string; filename: string }) => {
     setLoading(true);
     try {
-      toast.info("Procesando datos con extracción híbrida...");
+      toast.info("Procesando archivo con extracción avanzada...");
       const { data, error } = await supabase.functions.invoke("extract-products", {
         body: payload,
       });
@@ -125,18 +190,54 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
   };
 
   const handleFile = async (file: File) => {
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type: "array" });
-    const rows = wb.SheetNames.flatMap((sheetName) => {
-      const sheet = wb.Sheets[sheetName];
-      return XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null, raw: false }).map((row, index) => ({
-        ...row,
-        __sheet: sheetName,
-        __row: index + 2,
-      }));
-    }).filter((row) => Object.values(row).some((value) => value != null && String(value).trim() !== ""));
-    if (rows.length === 0) throw new Error("El archivo está vacío");
-    await importData({ rows, filename: file.name });
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      if (ext === "pdf") {
+        const pdfjs = await import("pdfjs-dist");
+        pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.mjs", import.meta.url).toString();
+        const pdf = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
+        const pages: string[] = [];
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum += 1) {
+          const page = await pdf.getPage(pageNum);
+          const content = await page.getTextContent();
+          const lines = new Map<number, Array<{ x: number; text: string }>>();
+          content.items.forEach((item) => {
+            if (!("str" in item) || !item.str.trim()) return;
+            const transform = (item as { transform?: number[] }).transform || [0, 0, 0, 0, 0, 0];
+            const y = Math.round((transform[5] || 0) / 4) * 4;
+            const x = transform[4] || 0;
+            lines.set(y, [...(lines.get(y) || []), { x, text: item.str.trim() }]);
+          });
+          const textPage = [...lines.entries()]
+            .sort((a, b) => b[0] - a[0])
+            .map(([, items]) => items.sort((a, b) => a.x - b.x).map((item) => item.text).join(" ").replace(/\s+/g, " ").trim())
+            .filter(Boolean)
+            .join("\n");
+          if (textPage) pages.push(`Página ${pageNum}\n${textPage}`);
+        }
+        if (!pages.length) throw new Error("No se pudo leer texto del PDF");
+        await importData({ text: pages.join("\n"), filename: file.name });
+        return;
+      }
+
+      if (ext === "txt") {
+        const fileText = await file.text();
+        if (!fileText.trim()) throw new Error("El archivo está vacío");
+        await importData({ text: fileText, filename: file.name });
+        return;
+      }
+
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array", dense: true, cellDates: true });
+      const rows = wb.SheetNames.flatMap((sheetName) => {
+        const matrix = XLSX.utils.sheet_to_json<SheetRow>(wb.Sheets[sheetName], { header: 1, defval: null, raw: false, blankrows: false });
+        return rowsFromSheetMatrix(matrix, sheetName);
+      });
+      if (rows.length === 0) throw new Error("El archivo está vacío");
+      await importData({ rows, filename: file.name });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo leer el archivo");
+    }
   };
 
   const handleText = async () => {
@@ -150,7 +251,7 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-medium">{isMine ? "Tus productos" : "Competidor"}</p>
-          <p className="text-xs text-muted-foreground mt-1">Excel multihoja o texto pegado, sin plantilla fija</p>
+          <p className="text-xs text-muted-foreground mt-1">PDF, Excel multihoja, CSV, TXT o texto pegado</p>
         </div>
         {loading ? <Loader2 className="size-5 animate-spin text-primary" /> : <Wand2 className="size-5 text-secondary" />}
       </div>
@@ -168,11 +269,11 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
         <label className="glass rounded-2xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer border-2 border-dashed border-glass-border hover:border-primary transition-colors">
           <Upload className="size-6 text-primary" />
           <div className="text-center">
-            <p className="text-sm font-medium">Selecciona Excel, CSV o XLS</p>
-            <p className="text-xs text-muted-foreground mt-1">Lee todas las hojas y normaliza miles de filas</p>
+            <p className="text-sm font-medium">Selecciona PDF, Excel, CSV, XLS o TXT</p>
+            <p className="text-xs text-muted-foreground mt-1">Detecta tablas, hojas grandes, columnas raras y textos largos</p>
           </div>
           <span className="inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground">Subir archivo</span>
-          <input type="file" accept=".xlsx,.xls,.csv" className="sr-only" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={loading} />
+          <input type="file" accept=".xlsx,.xls,.csv,.pdf,.txt" className="sr-only" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={loading} />
         </label>
       ) : (
         <div className="space-y-3">

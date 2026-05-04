@@ -29,6 +29,8 @@ const cleanString = (v: unknown) => {
   return t && t !== "-" && t.toLowerCase() !== "null" ? t : null;
 };
 
+const badName = /^(pagina|página|page|total|subtotal|iva|vat|impuesto|precio|price|producto|product|ref|referencia|sku|codigo|código|stock|cantidad|unidades|fecha|cliente|proveedor)\b/i;
+
 const numberValue = (v: unknown) => {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   const raw = cleanString(v);
@@ -41,6 +43,40 @@ const numberValue = (v: unknown) => {
   const n = Number(t);
   return Number.isFinite(n) ? n : null;
 };
+
+function priceFromLine(line: string) {
+  const matches = [...line.matchAll(/(?:€|eur|usd|us\$|\$)?\s*-?\d{1,3}(?:[.\s]\d{3})*(?:[,.]\d{1,2})\s*(?:€|eur|usd|us\$|\$)?|-?\d+[,.]\d{2}/gi)]
+    .map((match) => ({ text: match[0], index: match.index ?? 0, value: numberValue(match[0]) }))
+    .filter((match) => match.value != null && match.value >= 0 && match.value < 1000000);
+  if (!matches.length) return null;
+  return matches[matches.length - 1];
+}
+
+function productFromTextLine(line: string, row: Row) {
+  const clean = cleanString(line);
+  if (!clean || clean.length < 4 || badName.test(clean)) return null;
+  const price = priceFromLine(clean);
+  if (!price) return null;
+  let name = clean.slice(0, price.index).replace(/[|;,:\-–—]+$/g, "").trim();
+  if (!name || name.length < 3) name = clean.replace(price.text, "").trim();
+  const skuMatch = name.match(/^([A-Z0-9][A-Z0-9._\/-]{2,})\s+(.{3,})$/i);
+  const sku = skuMatch ? skuMatch[1] : null;
+  const afterPrice = clean.slice(price.index + price.text.length);
+  const stockMatch = afterPrice.match(/\b(\d{1,6})\b/);
+  if (skuMatch) name = skuMatch[2].trim();
+  if (!name || badName.test(name) || name.split(" ").length > 24) return null;
+  return {
+    name: cleanString(name),
+    sku,
+    category: cleanString(row.__sheet),
+    price: price.value,
+    currency: /usd|us\$|\$/i.test(clean) ? "USD" : "EUR",
+    stock: stockMatch ? numberValue(stockMatch[1]) : null,
+    description: clean,
+    url: null,
+    raw: row,
+  };
+}
 
 const inferCurrency = (row: Row) => {
   const t = Object.values(row).map((v) => String(v ?? "")).join(" ").toUpperCase();
@@ -96,6 +132,12 @@ function inferMapping(rows: Row[]) {
 
 function normalizeRows(rows: Row[], mapping: Record<string, Field>) {
   return rows.map((row) => {
+    if (typeof row.texto === "string") {
+      const fromText = productFromTextLine(row.texto, row);
+      if (fromText) return fromText;
+      if (Object.keys(row).filter((key) => !key.startsWith("__")).length <= 1) return null;
+    }
+
     const out: Partial<Record<Field, unknown>> = {};
     for (const [orig, std] of Object.entries(mapping)) out[std] = row[orig];
 
@@ -108,7 +150,7 @@ function normalizeRows(rows: Row[], mapping: Record<string, Field>) {
       if (candidate) out.price = candidate[1];
     }
 
-    return {
+    const product = {
       name: cleanString(out.name),
       sku: cleanString(out.sku),
       category: cleanString(out.category),
@@ -119,7 +161,15 @@ function normalizeRows(rows: Row[], mapping: Record<string, Field>) {
       url: cleanString(out.url),
       raw: row,
     };
-  }).filter((p) => p.name && p.name.length > 1);
+
+    if ((!product.price || !product.name) && Object.keys(mapping).length < 2) {
+      const joined = Object.entries(row).filter(([k]) => !k.startsWith("__")).map(([, v]) => cleanString(v)).filter(Boolean).join(" ");
+      const fromText = productFromTextLine(joined, row);
+      if (fromText) return { ...fromText, ...Object.fromEntries(Object.entries(product).filter(([, v]) => v != null)) };
+    }
+
+    return product;
+  }).filter((p) => p?.name && p.name.length > 1 && !badName.test(String(p.name)));
 }
 
 function rowsFromText(text: string): Row[] {
@@ -140,15 +190,18 @@ function rowsFromText(text: string): Row[] {
 }
 
 async function aiNormalizeChunk(rows: Row[], filename: string, apiKey: string, attempt = 0): Promise<{ products: Row[]; competitor_name?: string | null }> {
-  const system = `Eres un parser de catálogos. Devuelve SOLO la herramienta normalize. Para cada fila extrae name (obligatorio), sku, category, price (número), currency, stock, description, url. Si un campo no está, usa null. NO inventes datos. Si hay un nombre de competidor o tienda, devuélvelo en competitor_name.`;
+  const system = `Eres un parser experto de catálogos retail para PAMPAS MARKET. Procesas Excel, CSV, PDF y texto copiado.
+Devuelve SOLO la herramienta normalize. Extrae únicamente productos reales, no cabeceras, totales, páginas, impuestos ni textos legales.
+Para cada producto devuelve name obligatorio, sku, category, price numérico, currency, stock numérico, description, url. Si falta algo usa null.
+Si hay tablas sin cabecera, interpreta columnas por contexto. Si una línea tiene nombre + precio, úsala como producto. NO inventes datos.`;
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
       messages: [
         { role: "system", content: system },
-        { role: "user", content: `Origen: ${filename}\nFilas a normalizar (JSON):\n${JSON.stringify(rows).slice(0, 80000)}` },
+        { role: "user", content: `Origen: ${filename}\nFilas/líneas a normalizar (JSON):\n${JSON.stringify(rows).slice(0, 100000)}` },
       ],
       tools: [{ type: "function", function: { name: "normalize", parameters: {
         type: "object",
@@ -200,9 +253,9 @@ Deno.serve(async (req) => {
     const needsAi = detected < 2 || yield_ < 0.5 || products.filter((p) => p.price != null).length / Math.max(products.length, 1) < 0.3;
 
     if (needsAi) {
-      // Chunk rows (60 per call) and merge results
-      const chunkSize = 60;
-      const maxChunks = 25; // up to 1500 rows via AI
+      // Chunk rows and merge results. Deterministic pass handles very large files; AI repairs messy/PDF chunks.
+      const chunkSize = 90;
+      const maxChunks = 60;
       const aiProducts: Row[] = [];
       for (let i = 0; i < Math.min(rows.length, chunkSize * maxChunks); i += chunkSize) {
         const chunk = rows.slice(i, i + chunkSize);
@@ -211,7 +264,7 @@ Deno.serve(async (req) => {
           if (!competitor_name && ai.competitor_name) competitor_name = ai.competitor_name;
           if (Array.isArray(ai.products)) {
             for (const p of ai.products) {
-              if (p.name) aiProducts.push({ ...p, raw: chunk[aiProducts.length % chunk.length] || null });
+              if (p.name && !badName.test(String(p.name))) aiProducts.push({ ...p, raw: p.raw ?? chunk[aiProducts.length % chunk.length] ?? null });
             }
           }
         } catch (e) {
@@ -220,7 +273,9 @@ Deno.serve(async (req) => {
           break;
         }
       }
-      if (aiProducts.length > products.length * 0.8) {
+      const deterministicPriceRatio = products.filter((p) => p.price != null).length / Math.max(products.length, 1);
+      const deterministicQuality = products.length / Math.max(rows.length, 1) > 0.25 && deterministicPriceRatio > 0.7;
+      if ((!deterministicQuality && aiProducts.length > products.length * 0.8) || aiProducts.length > products.length * 1.25) {
         products = aiProducts.map((p) => ({
           name: cleanString(p.name),
           sku: cleanString(p.sku),
