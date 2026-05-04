@@ -29,6 +29,8 @@ const cleanString = (v: unknown) => {
   return t && t !== "-" && t.toLowerCase() !== "null" ? t : null;
 };
 
+const badName = /^(pagina|página|page|total|subtotal|iva|vat|impuesto|precio|price|producto|product|referencia|codigo|código|stock|cantidad|unidades|fecha|cliente|proveedor)\b/i;
+
 const numberValue = (v: unknown) => {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   const raw = cleanString(v);
@@ -41,6 +43,38 @@ const numberValue = (v: unknown) => {
   const n = Number(t);
   return Number.isFinite(n) ? n : null;
 };
+
+function priceFromLine(line: string) {
+  const matches = [...line.matchAll(/(?:€|eur|usd|us\$|\$)?\s*-?\d{1,3}(?:[.\s]\d{3})*(?:[,.]\d{1,2})\s*(?:€|eur|usd|us\$|\$)?|-?\d+[,.]\d{2}/gi)]
+    .map((match) => ({ text: match[0], index: match.index ?? 0, value: numberValue(match[0]) }))
+    .filter((match) => match.value != null && match.value >= 0 && match.value < 1000000);
+  if (!matches.length) return null;
+  return matches[matches.length - 1];
+}
+
+function productFromTextLine(line: string, row: Row) {
+  const clean = cleanString(line);
+  if (!clean || clean.length < 4 || badName.test(clean)) return null;
+  const price = priceFromLine(clean);
+  if (!price) return null;
+  let name = clean.slice(0, price.index).replace(/[|;,:\-–—]+$/g, "").trim();
+  if (!name || name.length < 3) name = clean.replace(price.text, "").trim();
+  const skuMatch = name.match(/^([A-Z0-9][A-Z0-9._\/-]{2,})\s+(.{3,})$/i);
+  const sku = skuMatch ? skuMatch[1] : null;
+  if (skuMatch) name = skuMatch[2].trim();
+  if (!name || badName.test(name) || name.split(" ").length > 24) return null;
+  return {
+    name: cleanString(name),
+    sku,
+    category: cleanString(row.__sheet),
+    price: price.value,
+    currency: /usd|us\$|\$/i.test(clean) ? "USD" : "EUR",
+    stock: null,
+    description: clean,
+    url: null,
+    raw: row,
+  };
+}
 
 const inferCurrency = (row: Row) => {
   const t = Object.values(row).map((v) => String(v ?? "")).join(" ").toUpperCase();
@@ -96,6 +130,11 @@ function inferMapping(rows: Row[]) {
 
 function normalizeRows(rows: Row[], mapping: Record<string, Field>) {
   return rows.map((row) => {
+    if (typeof row.texto === "string") {
+      const fromText = productFromTextLine(row.texto, row);
+      if (fromText) return fromText;
+    }
+
     const out: Partial<Record<Field, unknown>> = {};
     for (const [orig, std] of Object.entries(mapping)) out[std] = row[orig];
 
@@ -108,7 +147,7 @@ function normalizeRows(rows: Row[], mapping: Record<string, Field>) {
       if (candidate) out.price = candidate[1];
     }
 
-    return {
+    const product = {
       name: cleanString(out.name),
       sku: cleanString(out.sku),
       category: cleanString(out.category),
@@ -119,7 +158,15 @@ function normalizeRows(rows: Row[], mapping: Record<string, Field>) {
       url: cleanString(out.url),
       raw: row,
     };
-  }).filter((p) => p.name && p.name.length > 1);
+
+    if ((!product.price || !product.name) && Object.keys(mapping).length < 2) {
+      const joined = Object.entries(row).filter(([k]) => !k.startsWith("__")).map(([, v]) => cleanString(v)).filter(Boolean).join(" ");
+      const fromText = productFromTextLine(joined, row);
+      if (fromText) return { ...fromText, ...Object.fromEntries(Object.entries(product).filter(([, v]) => v != null)) };
+    }
+
+    return product;
+  }).filter((p) => p.name && p.name.length > 1 && !badName.test(String(p.name)));
 }
 
 function rowsFromText(text: string): Row[] {
