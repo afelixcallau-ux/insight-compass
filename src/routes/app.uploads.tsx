@@ -94,7 +94,7 @@ function UploadsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Archivos y subidas</h1>
-        <p className="text-muted-foreground mt-1">Sube Excel o pega texto. La IA lo extrae y lo organiza.</p>
+        <p className="text-muted-foreground mt-1">Sube PDF, Excel, CSV, TXT o pega texto largo. La IA lo extrae y lo organiza.</p>
       </div>
 
       {/* Uploader (centralized here) */}
