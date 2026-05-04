@@ -273,7 +273,9 @@ Deno.serve(async (req) => {
           break;
         }
       }
-      if (aiProducts.length > products.length * 0.8) {
+      const deterministicPriceRatio = products.filter((p) => p.price != null).length / Math.max(products.length, 1);
+      const deterministicQuality = products.length / Math.max(rows.length, 1) > 0.25 && deterministicPriceRatio > 0.7;
+      if ((!deterministicQuality && aiProducts.length > products.length * 0.8) || aiProducts.length > products.length * 1.25) {
         products = aiProducts.map((p) => ({
           name: cleanString(p.name),
           sku: cleanString(p.sku),
