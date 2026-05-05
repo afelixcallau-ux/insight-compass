@@ -327,11 +327,11 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
         <label className="glass rounded-2xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer border-2 border-dashed border-glass-border hover:border-primary transition-colors">
           <Upload className="size-6 text-primary" />
           <div className="text-center">
-            <p className="text-sm font-medium">Selecciona PDF, Excel, CSV, XLS o TXT</p>
-            <p className="text-xs text-muted-foreground mt-1">Detecta tablas, hojas grandes, columnas raras y textos largos</p>
+            <p className="text-sm font-medium">PDF, Excel, CSV, TXT, HTML o Email (.eml)</p>
+            <p className="text-xs text-muted-foreground mt-1">Soporta informes por email con tablas y adjuntos Excel</p>
           </div>
           <span className="inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground">Subir archivo</span>
-          <input type="file" accept=".xlsx,.xls,.csv,.pdf,.txt" className="sr-only" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={loading} />
+          <input type="file" accept=".xlsx,.xls,.csv,.pdf,.txt,.eml,.html,.htm,message/rfc822" className="sr-only" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={loading} />
         </label>
       ) : (
         <div className="space-y-3">
