@@ -1,9 +1,8 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Package, Users, MessageSquare, LogOut, FileStack, Bot } from "lucide-react";
+import { LayoutDashboard, Package, Users, LogOut, FileStack, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
-import logoMark from "@/assets/logo-mark.png";
 
 const nav = [
   { to: "/app", label: "Resumen", icon: LayoutDashboard },
@@ -11,7 +10,6 @@ const nav = [
   { to: "/app/competitors", label: "Competidores", icon: Users },
   { to: "/app/uploads", label: "Archivos", icon: FileStack },
   { to: "/app/agent", label: "Agente", icon: Bot },
-  { to: "/app/chat", label: "Chat IA", icon: MessageSquare },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -25,15 +23,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="relative min-h-screen">
-      <div className="glass-aura bg-primary/5 w-[520px] h-[520px] -top-40 -left-40" />
-      <div className="glass-aura bg-primary/5 w-[460px] h-[460px] bottom-0 right-0" />
-
       <div className="relative z-10 flex min-h-screen">
         {/* Sidebar */}
         <aside className="hidden md:flex flex-col w-64 p-4 gap-2">
           <Link to="/app" className="flex items-center gap-2 px-3 py-4">
-            <img src={logoMark} alt="" width={36} height={36} className="size-9 drop-shadow-sm" />
-            <span className="font-semibold tracking-tight text-base">PAMPAS MARKET</span>
+            <span className="font-semibold tracking-tight text-base">PAMPAS</span>
           </Link>
           <nav className="glass rounded-2xl p-2 flex flex-col gap-1">
             {nav.map((n) => {

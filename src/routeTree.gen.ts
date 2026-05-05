@@ -16,7 +16,6 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppUploadsRouteImport } from './routes/app.uploads'
 import { Route as AppProductsRouteImport } from './routes/app.products'
 import { Route as AppCompetitorsRouteImport } from './routes/app.competitors'
-import { Route as AppChatRouteImport } from './routes/app.chat'
 import { Route as AppAgentRouteImport } from './routes/app.agent'
 
 const AuthRoute = AuthRouteImport.update({
@@ -54,11 +53,6 @@ const AppCompetitorsRoute = AppCompetitorsRouteImport.update({
   path: '/competitors',
   getParentRoute: () => AppRoute,
 } as any)
-const AppChatRoute = AppChatRouteImport.update({
-  id: '/chat',
-  path: '/chat',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppAgentRoute = AppAgentRouteImport.update({
   id: '/agent',
   path: '/agent',
@@ -70,7 +64,6 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/app/agent': typeof AppAgentRoute
-  '/app/chat': typeof AppChatRoute
   '/app/competitors': typeof AppCompetitorsRoute
   '/app/products': typeof AppProductsRoute
   '/app/uploads': typeof AppUploadsRoute
@@ -80,7 +73,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app/agent': typeof AppAgentRoute
-  '/app/chat': typeof AppChatRoute
   '/app/competitors': typeof AppCompetitorsRoute
   '/app/products': typeof AppProductsRoute
   '/app/uploads': typeof AppUploadsRoute
@@ -92,7 +84,6 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/app/agent': typeof AppAgentRoute
-  '/app/chat': typeof AppChatRoute
   '/app/competitors': typeof AppCompetitorsRoute
   '/app/products': typeof AppProductsRoute
   '/app/uploads': typeof AppUploadsRoute
@@ -105,7 +96,6 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/app/agent'
-    | '/app/chat'
     | '/app/competitors'
     | '/app/products'
     | '/app/uploads'
@@ -115,7 +105,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/app/agent'
-    | '/app/chat'
     | '/app/competitors'
     | '/app/products'
     | '/app/uploads'
@@ -126,7 +115,6 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/app/agent'
-    | '/app/chat'
     | '/app/competitors'
     | '/app/products'
     | '/app/uploads'
@@ -190,13 +178,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCompetitorsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/chat': {
-      id: '/app/chat'
-      path: '/chat'
-      fullPath: '/app/chat'
-      preLoaderRoute: typeof AppChatRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/agent': {
       id: '/app/agent'
       path: '/agent'
@@ -209,7 +190,6 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAgentRoute: typeof AppAgentRoute
-  AppChatRoute: typeof AppChatRoute
   AppCompetitorsRoute: typeof AppCompetitorsRoute
   AppProductsRoute: typeof AppProductsRoute
   AppUploadsRoute: typeof AppUploadsRoute
@@ -218,7 +198,6 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAgentRoute: AppAgentRoute,
-  AppChatRoute: AppChatRoute,
   AppCompetitorsRoute: AppCompetitorsRoute,
   AppProductsRoute: AppProductsRoute,
   AppUploadsRoute: AppUploadsRoute,

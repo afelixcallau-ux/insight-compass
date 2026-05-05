@@ -192,6 +192,61 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
   const handleFile = async (file: File) => {
     try {
       const ext = file.name.split(".").pop()?.toLowerCase();
+
+      if (ext === "eml" || file.type === "message/rfc822") {
+        const raw = await file.text();
+        // Find boundary
+        const boundaryMatch = raw.match(/boundary=["']?([^"'\r\n;]+)/i);
+        let extractedText = "";
+        const attachments: Array<{ name: string; data: Uint8Array }> = [];
+        if (boundaryMatch) {
+          const parts = raw.split(new RegExp(`--${boundaryMatch[1].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+          for (const part of parts) {
+            const headerEnd = part.indexOf("\r\n\r\n") >= 0 ? part.indexOf("\r\n\r\n") + 4 : part.indexOf("\n\n") + 2;
+            if (headerEnd < 4) continue;
+            const headers = part.slice(0, headerEnd).toLowerCase();
+            const body = part.slice(headerEnd).trim();
+            if (headers.includes("application/vnd.openxmlformats") || headers.includes("application/vnd.ms-excel") || /\.xlsx|\.xls/i.test(headers)) {
+              try {
+                const bin = atob(body.replace(/\s/g, ""));
+                const arr = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+                const nameMatch = headers.match(/filename=["']?([^"'\r\n;]+)/);
+                attachments.push({ name: nameMatch?.[1] || "attachment.xlsx", data: arr });
+              } catch (err) { console.error(err); }
+            } else if (headers.includes("text/html") || headers.includes("text/plain")) {
+              try {
+                let decoded = body;
+                if (headers.includes("base64")) {
+                  decoded = atob(body.replace(/\s/g, ""));
+                }
+                // Strip HTML tags
+                const textOnly = decoded.replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+                if (textOnly.length > extractedText.length) extractedText = textOnly;
+              } catch (err) { console.error(err); }
+            }
+          }
+        }
+        // If we found an XLSX attachment, parse it
+        if (attachments.length > 0) {
+          const att = attachments[0];
+          const wb = XLSX.read(att.data, { type: "array", dense: true, cellDates: true });
+          const rows = wb.SheetNames.flatMap((sheetName) => {
+            const matrix = XLSX.utils.sheet_to_json<SheetRow>(wb.Sheets[sheetName], { header: 1, defval: null, raw: false, blankrows: false });
+            return rowsFromSheetMatrix(matrix, sheetName);
+          });
+          if (rows.length > 0) {
+            await importData({ rows, filename: `${file.name} → ${att.name}` });
+            return;
+          }
+        }
+        if (extractedText) {
+          await importData({ text: extractedText, filename: file.name });
+          return;
+        }
+        throw new Error("No se pudo extraer contenido del email");
+      }
+
       if (ext === "pdf") {
         const pdfjs = await import("pdfjs-dist");
         pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.mjs", import.meta.url).toString();
@@ -220,10 +275,13 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
         return;
       }
 
-      if (ext === "txt") {
+      if (ext === "txt" || ext === "html" || ext === "htm") {
         const fileText = await file.text();
-        if (!fileText.trim()) throw new Error("El archivo está vacío");
-        await importData({ text: fileText, filename: file.name });
+        const cleaned = ext === "html" || ext === "htm"
+          ? fileText.replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim()
+          : fileText;
+        if (!cleaned.trim()) throw new Error("El archivo está vacío");
+        await importData({ text: cleaned, filename: file.name });
         return;
       }
 
@@ -269,11 +327,11 @@ export function UploadExcel({ isMine, onDone }: { isMine: boolean; onDone: () =>
         <label className="glass rounded-2xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer border-2 border-dashed border-glass-border hover:border-primary transition-colors">
           <Upload className="size-6 text-primary" />
           <div className="text-center">
-            <p className="text-sm font-medium">Selecciona PDF, Excel, CSV, XLS o TXT</p>
-            <p className="text-xs text-muted-foreground mt-1">Detecta tablas, hojas grandes, columnas raras y textos largos</p>
+            <p className="text-sm font-medium">PDF, Excel, CSV, TXT, HTML o Email (.eml)</p>
+            <p className="text-xs text-muted-foreground mt-1">Soporta informes por email con tablas y adjuntos Excel</p>
           </div>
           <span className="inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground">Subir archivo</span>
-          <input type="file" accept=".xlsx,.xls,.csv,.pdf,.txt" className="sr-only" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={loading} />
+          <input type="file" accept=".xlsx,.xls,.csv,.pdf,.txt,.eml,.html,.htm,message/rfc822" className="sr-only" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={loading} />
         </label>
       ) : (
         <div className="space-y-3">
