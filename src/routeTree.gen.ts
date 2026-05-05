@@ -17,6 +17,7 @@ import { Route as AppUploadsRouteImport } from './routes/app.uploads'
 import { Route as AppProductsRouteImport } from './routes/app.products'
 import { Route as AppCompetitorsRouteImport } from './routes/app.competitors'
 import { Route as AppChatRouteImport } from './routes/app.chat'
+import { Route as AppAgentRouteImport } from './routes/app.agent'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -58,11 +59,17 @@ const AppChatRoute = AppChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAgentRoute = AppAgentRouteImport.update({
+  id: '/agent',
+  path: '/agent',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/app/agent': typeof AppAgentRoute
   '/app/chat': typeof AppChatRoute
   '/app/competitors': typeof AppCompetitorsRoute
   '/app/products': typeof AppProductsRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/app/agent': typeof AppAgentRoute
   '/app/chat': typeof AppChatRoute
   '/app/competitors': typeof AppCompetitorsRoute
   '/app/products': typeof AppProductsRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/app/agent': typeof AppAgentRoute
   '/app/chat': typeof AppChatRoute
   '/app/competitors': typeof AppCompetitorsRoute
   '/app/products': typeof AppProductsRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/auth'
+    | '/app/agent'
     | '/app/chat'
     | '/app/competitors'
     | '/app/products'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/app/agent'
     | '/app/chat'
     | '/app/competitors'
     | '/app/products'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/auth'
+    | '/app/agent'
     | '/app/chat'
     | '/app/competitors'
     | '/app/products'
@@ -185,10 +197,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppChatRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/agent': {
+      id: '/app/agent'
+      path: '/agent'
+      fullPath: '/app/agent'
+      preLoaderRoute: typeof AppAgentRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAgentRoute: typeof AppAgentRoute
   AppChatRoute: typeof AppChatRoute
   AppCompetitorsRoute: typeof AppCompetitorsRoute
   AppProductsRoute: typeof AppProductsRoute
@@ -197,6 +217,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAgentRoute: AppAgentRoute,
   AppChatRoute: AppChatRoute,
   AppCompetitorsRoute: AppCompetitorsRoute,
   AppProductsRoute: AppProductsRoute,
@@ -214,12 +235,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
