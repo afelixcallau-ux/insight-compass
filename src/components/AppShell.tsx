@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Package, Users, MessageSquare, LogOut, FileStack } from "lucide-react";
+import { LayoutDashboard, Package, Users, MessageSquare, LogOut, FileStack, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -10,6 +10,7 @@ const nav = [
   { to: "/app/products", label: "Productos", icon: Package },
   { to: "/app/competitors", label: "Competidores", icon: Users },
   { to: "/app/uploads", label: "Archivos", icon: FileStack },
+  { to: "/app/agent", label: "Agente", icon: Bot },
   { to: "/app/chat", label: "Chat IA", icon: MessageSquare },
 ] as const;
 
